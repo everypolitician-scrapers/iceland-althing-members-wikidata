@@ -17,16 +17,19 @@ rescue RestClient::Exception => e
 end
 
 memberships_query = <<EOQ
-  SELECT DISTINCT ?item ?itemLabel ?start_date ?end_date ?constituency ?constituencyLabel ?party ?partyLabel
+  SELECT DISTINCT ?item ?itemLabel ?start_date ?end_date ?constituency ?constituencyLabel ?party ?partyLabel (YEAR(?term_start) AS ?term)
   WHERE {
+    VALUES ?membership { wd:Q33083156 wd:Q33083139 wd:Q33082474 }
     ?item p:P39 ?statement .
-    ?statement ps:P39 wd:Q33083139 .
+    ?statement ps:P39 ?membership .
+    ?membership wdt:P361 [ wdt:P571 ?term_start ] .
     OPTIONAL { ?statement pq:P580 ?start_date }
     OPTIONAL { ?statement pq:P582 ?end_date }
     OPTIONAL { ?statement pq:P768 ?constituency }
     OPTIONAL { ?statement pq:P4100 ?party }
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
   }
+  ORDER BY ?term ?start_date ?itemLabel
 EOQ
 
 data = sparql(memberships_query).map(&:to_h).map do |r|
@@ -39,7 +42,7 @@ data = sparql(memberships_query).map(&:to_h).map do |r|
     area_id:    r[:constituency].split('/').last,
     party:      r[:partylabel],
     party_id:   r[:party].split('/').last,
-    term:       2013,
+    term:       r[:term],
   }
 end
 data.each { |mem| puts mem.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h } if ENV['MORPH_DEBUG']
