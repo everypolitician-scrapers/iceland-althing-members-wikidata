@@ -66,7 +66,7 @@ memberships_query = <<SPARQL
     OPTIONAL { ?ps pq:P582 ?end }
     OPTIONAL { ?ps pq:P4100 ?group }
     OPTIONAL { ?ps pq:P768 ?district }
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en,is" . }
   }
 SPARQL
 
